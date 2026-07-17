@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIS — Modul Akademik</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EDF1EC;
+    --surface:#FFFFFF;
+    --surface-alt:#F6F8F4;
+    --ink:#1B2430;
+    --ink-soft:#5B6570;
+    --ink-faint:#8B9399;
+    --primary:#1F3A5F;
+    --primary-dark:#14263D;
+    --gold:#B98B33;
+    --gold-soft:#EFD9A3;
+    --teal:#2F6F63;
+    --teal-soft:#DCEAE6;
+    --rust:#B14D36;
+    --rust-soft:#F3DCD5;
+    --amber-soft:#FBE9C6;
+    --line:#DCE2D6;
+    --radius:10px;
+    --font-display:'Fraunces',serif;
+    --font-body:'Inter',sans-serif;
+    --font-mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--font-body);background:var(--bg);color:var(--ink);}
+  .app{display:flex;min-height:100vh;}
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar{
+    width:250px;flex-shrink:0;background:var(--primary);color:#fff;
+    display:flex;flex-direction:column;padding:28px 20px;
+  }
+  .brand{display:flex;align-items:center;gap:12px;margin-bottom:6px;}
+  .stamp{
+    width:46px;height:46px;border-radius:50%;border:1.5px dashed rgba(255,255,255,.55);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    transform:rotate(-8deg);
+  }
+  .stamp span{font-family:var(--font-display);font-weight:700;font-size:14px;letter-spacing:.5px;}
+  .brand-text .name{font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:.3px;}
+  .brand-text .sub{font-size:10.5px;text-transform:uppercase;letter-spacing:1.4px;color:var(--gold-soft);margin-top:2px;}
+
+  .class-card{
+    margin-top:22px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+    border-radius:var(--radius);padding:14px 16px;
+  }
+  .class-card .label{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:rgba(255,255,255,.55);}
+  .class-card .val{font-family:var(--font-mono);font-size:14px;margin-top:3px;color:#fff;}
+  .class-card .row{display:flex;justify-content:space-between;margin-top:10px;}
+
+  nav.tabs{margin-top:30px;display:flex;flex-direction:column;gap:3px;flex:1;}
+  .tab-btn{
+    display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:8px;
+    background:transparent;border:none;color:rgba(255,255,255,.72);font-family:var(--font-body);
+    font-size:14.5px;font-weight:500;cursor:pointer;text-align:left;border-left:3px solid transparent;
+    transition:background .15s ease,color .15s ease;
+  }
+  .tab-btn svg{width:17px;height:17px;flex-shrink:0;opacity:.85;}
+  .tab-btn:hover{background:rgba(255,255,255,.06);color:#fff;}
+  .tab-btn.active{background:rgba(255,255,255,.1);color:#fff;border-left-color:var(--gold);}
+
+  .sidebar-foot{font-size:10.5px;color:rgba(255,255,255,.4);line-height:1.5;margin-top:16px;}
+
+  /* ---------- MAIN ---------- */
+  main{flex:1;padding:34px 44px;min-width:0;}
+  .eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:1.6px;color:var(--gold);font-weight:600;}
+  h1.page-title{font-family:var(--font-display);font-size:30px;font-weight:600;margin:4px 0 26px;color:var(--primary-dark);}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:22px 24px;margin-bottom:20px;}
+  .card-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px;flex-wrap:wrap;}
+  .card-head h2{font-family:var(--font-display);font-size:18px;font-weight:600;margin:0;color:var(--ink);}
+
+  select, .date-select{
+    font-family:var(--font-body);font-size:13.5px;padding:8px 12px;border-radius:7px;border:1px solid var(--line);
+    background:var(--surface-alt);color:var(--ink);cursor:pointer;
+  }
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th{
+    text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--ink-soft);
+    padding:8px 10px;border-bottom:1.5px solid var(--primary);font-weight:600;
+  }
+  td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  .mono{font-family:var(--font-mono);}
+
+  /* jadwal */
+  .jadwal-table td, .jadwal-table th{text-align:center;}
+  .jadwal-table td:first-child, .jadwal-table th:first-child{text-align:left;}
+  .cell-mapel{font-weight:600;font-size:12.8px;color:var(--primary-dark);}
+  .cell-guru{font-size:11px;color:var(--ink-faint);margin-top:1px;}
+  .cell-empty{color:var(--ink-faint);font-size:12px;}
+
+  /* absensi */
+  .recap-row{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;}
+  .recap-chip{flex:1;min-width:110px;background:var(--surface-alt);border:1px solid var(--line);border-radius:8px;padding:12px 14px;}
+  .recap-chip .n{font-family:var(--font-mono);font-size:22px;font-weight:600;}
+  .recap-chip .l{font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--ink-soft);margin-top:2px;}
+  .recap-chip.h .n{color:var(--teal);}
+  .recap-chip.s .n{color:var(--gold);}
+  .recap-chip.i .n{color:#6C7BA0;}
+  .recap-chip.a .n{color:var(--rust);}
+
+  .status-group{display:flex;gap:5px;}
+  .status-btn{
+    width:32px;height:28px;border-radius:6px;border:1px solid var(--line);background:var(--surface);
+    font-family:var(--font-mono);font-size:12px;font-weight:600;cursor:pointer;color:var(--ink-soft);
+  }
+  .status-btn[data-s="H"].active{background:var(--teal-soft);border-color:var(--teal);color:var(--teal);}
+  .status-btn[data-s="S"].active{background:var(--amber-soft);border-color:var(--gold);color:#8a6a1f;}
+  .status-btn[data-s="I"].active{background:#E4E8F5;border-color:#6C7BA0;color:#4c5a86;}
+  .status-btn[data-s="A"].active{background:var(--rust-soft);border-color:var(--rust);color:var(--rust);}
+
+  /* nilai */
+  input.nilai-input{
+    width:52px;font-family:var(--font-mono);font-size:13px;text-align:center;padding:5px 3px;
+    border:1px solid var(--line);border-radius:6px;background:var(--surface-alt);color:var(--ink);
+  }
+  input.nilai-input:focus{outline:2px solid var(--primary);outline-offset:1px;background:#fff;}
+  .rata{font-family:var(--font-mono);font-weight:700;font-size:14px;}
+  .predikat-badge{
+    display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.4px;
+  }
+  .predikat-A{background:var(--teal-soft);color:var(--teal);}
+  .predikat-B{background:var(--amber-soft);color:#8a6a1f;}
+  .predikat-C{background:#E4E8F5;color:#4c5a86;}
+  .predikat-D{background:var(--rust-soft);color:var(--rust);}
+
+  .note{font-size:12px;color:var(--ink-faint);margin-top:14px;line-height:1.5;}
+
+  /* rapor */
+  .rapor-sheet{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    padding:36px 40px;position:relative;overflow:hidden;
+  }
+  .rapor-sheet::before{
+    content:"";position:absolute;top:0;left:0;right:0;height:5px;
+    background:linear-gradient(90deg,var(--primary),var(--gold));
+  }
+  .rapor-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid var(--primary-dark);padding-bottom:18px;margin-bottom:20px;}
+  .rapor-head .school{font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--primary-dark);}
+  .rapor-head .school-sub{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
+  .rapor-head .title-right{text-align:right;}
+  .rapor-head .title-right .eyebrow{margin-bottom:2px;}
+  .rapor-head .title-right .ta{font-family:var(--font-mono);font-size:13px;color:var(--ink-soft);}
+
+  .siswa-info{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px 24px;margin-bottom:24px;font-size:13.5px;}
+  .siswa-info .l{font-size:10.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--ink-faint);}
+  .siswa-info .v{font-weight:600;margin-top:1px;}
+
+  .rapor-table th{border-bottom:1.5px solid var(--primary-dark);}
+  .rapor-table td{border-bottom:1px dashed var(--line);}
+  .capaian{font-size:11.5px;color:var(--ink-soft);max-width:340px;line-height:1.4;}
+
+  .kehadiran-box{display:flex;gap:14px;margin:22px 0;}
+  .kehadiran-box .item{flex:1;background:var(--surface-alt);border:1px solid var(--line);border-radius:8px;padding:12px 14px;text-align:center;}
+  .kehadiran-box .item .n{font-family:var(--font-mono);font-size:20px;font-weight:700;}
+  .kehadiran-box .item .l{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-soft);margin-top:2px;}
+
+  .catatan-box{margin-top:6px;}
+  .catatan-box label{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--ink-soft);font-weight:600;}
+  textarea.catatan{
+    width:100%;margin-top:8px;font-family:var(--font-body);font-size:13.5px;color:var(--ink);
+    border:1px solid var(--line);border-radius:8px;padding:12px 14px;resize:vertical;min-height:64px;
+    background:var(--surface-alt);line-height:1.5;
+  }
+  textarea.catatan:focus{outline:2px solid var(--primary);outline-offset:1px;background:#fff;}
+
+  .ttd-row{display:flex;justify-content:space-between;margin-top:34px;padding-top:20px;}
+  .ttd{text-align:center;width:190px;}
+  .ttd .role{font-size:12px;color:var(--ink-soft);}
+  .ttd .stamp2{
+    width:66px;height:66px;border-radius:50%;border:1.5px dashed var(--gold);margin:14px auto;
+    display:flex;align-items:center;justify-content:center;transform:rotate(-6deg);color:var(--gold);
+  }
+  .ttd .stamp2 span{font-family:var(--font-display);font-size:9px;font-weight:700;text-align:center;line-height:1.2;letter-spacing:.3px;}
+  .ttd .name{font-weight:600;font-size:13px;margin-top:4px;}
+
+  @media(max-width:820px){
+    .app{flex-direction:column;}
+    .sidebar{width:100%;flex-direction:row;align-items:center;flex-wrap:wrap;padding:16px 18px;}
+    .class-card{display:none;}
+    nav.tabs{flex-direction:row;margin-top:0;margin-left:auto;}
+    .sidebar-foot{display:none;}
+    main{padding:22px 18px;}
+    .siswa-info{grid-template-columns:1fr 1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="stamp"><span>SIS</span></div>
+      <div class="brand-text">
+        <div class="name">SIS Akademik</div>
+        <div class="sub">Sistem Informasi Sekolah</div>
+      </div>
+    </div>
+
+    <div class="class-card">
+      <div class="label">Kelas Aktif</div>
+      <div class="val">7A — SMP</div>
+      <div class="row">
+        <div>
+          <div class="label">Tahun Ajaran</div>
+          <div class="val" style="font-size:12.5px;">2025/2026</div>
+        </div>
+        <div>
+          <div class="label">Semester</div>
+          <div class="val" style="font-size:12.5px;">Genap</div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="tabs" id="navTabs">
+      <button class="tab-btn active" data-tab="jadwal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+        Jadwal Pelajaran
+      </button>
+      <button class="tab-btn" data-tab="absensi">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>
+        Absensi
+      </button>
+      <button class="tab-btn" data-tab="nilai">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9M12 19V5M20 19v-7"/></svg>
+        Nilai
+      </button>
+      <button class="tab-btn" data-tab="rapor">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M9 12h6M9 16h6M9 8h2"/></svg>
+        Rapor
+      </button>
+    </nav>
+
+    <div class="sidebar-foot">Prototipe demo — Modul Akademik.<br>Data contoh, belum tersambung basis data.<br><br>© 2026 Siti Sundari, M.Pd.</div>
+  </aside>
+
+  <main>
+    <div class="eyebrow" id="pageEyebrow">MODUL AKADEMIK</div>
+    <h1 class="page-title" id="pageTitle">Jadwal Pelajaran</h1>
+    <div id="viewRoot"></div>
+  </main>
+</div>
+
+<script>
+/* ============ SEEDED RANDOM ============ */
+function mulberry32(seed){
+  return function(){
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+const rand = mulberry32(20260717);
+
+/* ============ DATA MASTER ============ */
+const students = [
+  {id:1, nis:"25070101", nama:"Ahmad Fauzan Ramadhan"},
+  {id:2, nis:"25070102", nama:"Aisyah Putri Wulandari"},
+  {id:3, nis:"25070103", nama:"Bagas Setiawan"},
+  {id:4, nis:"25070104", nama:"Citra Ayu Lestari"},
+  {id:5, nis:"25070105", nama:"Dewi Anggraini"},
+  {id:6, nis:"25070106", nama:"Fajar Nur Hidayat"},
+  {id:7, nis:"25070107", nama:"Gita Permatasari"},
+  {id:8, nis:"25070108", nama:"Hafiz Al Ghifari"},
+  {id:9, nis:"25070109", nama:"Indah Sari Nurjanah"},
+  {id:10, nis:"25070110", nama:"Muhammad Rizky Pratama"},
+  {id:11, nis:"25070111", nama:"Nabila Zahra Salsabila"},
+  {id:12, nis:"25070112", nama:"Raka Aditya Wibowo"},
+];
+
+const subjects = [
+  {id:"pabp", nama:"Pendidikan Agama & Budi Pekerti", guru:"Bpk. Suherman, S.Ag."},
+  {id:"ppkn", nama:"Pendidikan Pancasila", guru:"Ibu Yuliana, S.Pd."},
+  {id:"bindo", nama:"Bahasa Indonesia", guru:"Ibu Retno Wulandari, S.Pd."},
+  {id:"mtk", nama:"Matematika", guru:"Bpk. Andi Prasetyo, S.Pd."},
+  {id:"ipa", nama:"Ilmu Pengetahuan Alam", guru:"Ibu Siti Maryam, S.Pd."},
+  {id:"ips", nama:"Ilmu Pengetahuan Sosial", guru:"Bpk. Doni Kurniawan, S.Pd."},
+  {id:"bing", nama:"Bahasa Inggris", guru:"Ibu Nurul Fadillah, S.Pd."},
+  {id:"pjok", nama:"PJOK", guru:"Bpk. Rusdi Hartono, S.Pd."},
+];
+
+const hari = ["Senin","Selasa","Rabu","Kamis","Jumat"];
+const jamSlots = ["07.00–07.40","07.40–08.20","08.20–09.00","09.15–09.55","09.55–10.35","10.35–11.15"];
+// jadwal[hari][jam] = subject id or null
+const jadwal = {
+  Senin:  ["mtk","mtk","bindo","ipa","ipa","ppkn"],
+  Selasa: ["bing","bing","ips","ips","pabp","pabp"],
+  Rabu:   ["mtk","bindo","bindo","pjok","pjok",null],
+  Kamis:  ["ipa","mtk","mtk","bing","ips","ppkn"],
+  Jumat:  ["pabp","bindo","ips","pjok",null,null],
+};
+
+/* ============ ATTENDANCE (generated) ============ */
+// generate 15 school weekdays ending near "today"
+function schoolDates(n){
+  const dates = [];
+  let d = new Date(2026, 6, 17); // 17 Jul 2026
+  while(dates.length < n){
+    const day = d.getDay();
+    if(day !== 0 && day !== 6) dates.push(new Date(d));
+    d.setDate(d.getDate()-1);
+  }
+  return dates.reverse();
+}
+const attDates = schoolDates(15);
+function fmtDate(d){
+  return d.toLocaleDateString('id-ID',{weekday:'long', day:'2-digit', month:'short', year:'numeric'});
+}
+function dateKey(d){ return d.toISOString().slice(0,10); }
+
+const attendance = {}; // {dateKey: {studentId: 'H'|'S'|'I'|'A'}}
+attDates.forEach(d=>{
+  const key = dateKey(d);
+  attendance[key] = {};
+  students.forEach(s=>{
+    const r = rand();
+    let status = 'H';
+    if(r > 0.94) status = 'A';
+    else if(r > 0.88) status = 'I';
+    else if(r > 0.80) status = 'S';
+    attendance[key][s.id] = status;
+  });
+});
+
+/* ============ GRADES (generated) ============ */
+const assessTypes = [
+  {key:'f1', label:'Formatif 1', weight:0.15},
+  {key:'f2', label:'Formatif 2', weight:0.15},
+  {key:'sts', label:'STS', weight:0.30},
+  {key:'sas', label:'SAS', weight:0.40},
+];
+const grades = {}; // grades[subjectId][studentId] = {f1,f2,sts,sas}
+subjects.forEach(sub=>{
+  grades[sub.id] = {};
+  students.forEach(s=>{
+    const base = 68 + rand()*26; // student baseline ability
+    const g = {};
+    assessTypes.forEach(a=>{
+      let v = Math.round(base + (rand()-0.5)*14);
+      v = Math.max(55, Math.min(99, v));
+      g[a.key] = v;
+    });
+    grades[sub.id][s.id] = g;
+  });
+});
+
+function rataRata(sub, sid){
+  const g = grades[sub][sid];
+  let total = 0;
+  assessTypes.forEach(a=> total += g[a.key]*a.weight);
+  return Math.round(total);
+}
+function predikat(v){
+  if(v >= 90) return 'A';
+  if(v >= 80) return 'B';
+  if(v >= 70) return 'C';
+  return 'D';
+}
+const predikatLabel = {A:'Sangat Baik', B:'Baik', C:'Cukup', D:'Perlu Bimbingan'};
+const capaianText = {
+  A: "menunjukkan penguasaan yang sangat baik pada seluruh capaian pembelajaran mata pelajaran ini.",
+  B: "menunjukkan penguasaan yang baik pada sebagian besar capaian pembelajaran mata pelajaran ini.",
+  C: "menunjukkan penguasaan yang cukup dan perlu penguatan pada beberapa capaian pembelajaran.",
+  D: "masih memerlukan bimbingan lebih lanjut untuk mencapai capaian pembelajaran yang diharapkan.",
+};
+
+/* ============ CATATAN WALI KELAS ============ */
+const catatan = {};
+students.forEach(s=>{
+  catatan[s.id] = `Ananda ${s.nama.split(' ')[0]} menunjukkan sikap dan partisipasi yang baik selama semester ini. Pertahankan semangat belajar dan terus tingkatkan kedisiplinan.`;
+});
+
+/* ============ STATE ============ */
+let activeTab = 'jadwal';
+let selectedSubject = subjects[0].id;
+let selectedDateKey = dateKey(attDates[attDates.length-1]);
+let selectedStudent = students[0].id;
+
+const titles = {
+  jadwal: "Jadwal Pelajaran",
+  absensi: "Absensi Harian",
+  nilai: "Input & Rekap Nilai",
+  rapor: "Rapor Peserta Didik",
+};
+
+/* ============ RENDER: JADWAL ============ */
+function renderJadwal(){
+  let rows = jamSlots.map((slot, i)=>{
+    let cells = hari.map(h=>{
+      const subId = jadwal[h][i];
+      if(!subId) return `<td class="cell-empty">—</td>`;
+      const sub = subjects.find(s=>s.id===subId);
+      return `<td><div class="cell-mapel">${sub.nama}</div><div class="cell-guru">${sub.guru.split(',')[0]}</div></td>`;
+    }).join('');
+    return `<tr><td class="mono" style="color:var(--ink-soft);font-size:12px;">${slot}</td>${cells}</tr>`;
+  }).join('');
+
+  return `
+  <div class="card">
+    <div class="card-head"><h2>Jadwal Mingguan — Kelas 7A</h2></div>
+    <table class="jadwal-table">
+      <thead><tr><th>Jam</th>${hari.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="note">Jadwal berlaku Semester Genap TA 2025/2026. Perubahan jadwal akan diperbarui otomatis pada modul ini.</div>
+  </div>`;
+}
+
+/* ============ RENDER: ABSENSI ============ */
+function renderAbsensi(){
+  const rec = attendance[selectedDateKey];
+  let counts = {H:0,S:0,I:0,A:0};
+  students.forEach(s=> counts[rec[s.id]]++);
+
+  const dateOptions = attDates.map(d=>{
+    const k = dateKey(d);
+    return `<option value="${k}" ${k===selectedDateKey?'selected':''}>${fmtDate(d)}</option>`;
+  }).join('');
+
+  const rows = students.map(s=>{
+    const st = rec[s.id];
+    const btns = ['H','S','I','A'].map(code=>
+      `<button class="status-btn" data-s="${code}" data-sid="${s.id}" ${st===code?'class="status-btn active" ':''}>${code}</button>`
+    ).join('');
+    // fix: rebuild properly since template above has bug with class override
+    const btns2 = ['H','S','I','A'].map(code=>{
+      const cls = 'status-btn' + (st===code ? ' active' : '');
+      return `<button class="${cls}" data-s="${code}" data-sid="${s.id}">${code}</button>`;
+    }).join('');
+    return `<tr>
+      <td class="mono" style="color:var(--ink-soft);">${s.nis}</td>
+      <td>${s.nama}</td>
+      <td><div class="status-group">${btns2}</div></td>
+    </tr>`;
+  }).join('');
+
+  return `
+  <div class="card">
+    <div class="card-head">
+      <h2>Rekap Kehadiran</h2>
+      <select id="dateSelect" class="date-select">${dateOptions}</select>
+    </div>
+    <div class="recap-row">
+      <div class="recap-chip h"><div class="n">${counts.H}</div><div class="l">Hadir</div></div>
+      <div class="recap-chip s"><div class="n">${counts.S}</div><div class="l">Sakit</div></div>
+      <div class="recap-chip i"><div class="n">${counts.I}</div><div class="l">Izin</div></div>
+      <div class="recap-chip a"><div class="n">${counts.A}</div><div class="l">Alpa</div></div>
+    </div>
+    <table>
+      <thead><tr><th style="width:90px;">NIS</th><th>Nama Peserta Didik</th><th style="width:180px;">Status</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="note">Klik salah satu huruf (H/S/I/A) pada setiap baris untuk mengubah status kehadiran tanggal terpilih.</div>
+  </div>`;
+}
+
+/* ============ RENDER: NILAI ============ */
+function renderNilai(){
+  const subOptions = subjects.map(s=>`<option value="${s.id}" ${s.id===selectedSubject?'selected':''}>${s.nama}</option>`).join('');
+  const sub = subjects.find(s=>s.id===selectedSubject);
+
+  const rows = students.map(s=>{
+    const g = grades[selectedSubject][s.id];
+    const inputs = assessTypes.map(a=>
+      `<td><input class="nilai-input" type="number" min="0" max="100" value="${g[a.key]}" data-sid="${s.id}" data-key="${a.key}"></td>`
+    ).join('');
+    const avg = rataRata(selectedSubject, s.id);
+    const p = predikat(avg);
+    return `<tr id="row-${s.id}">
+      <td class="mono" style="color:var(--ink-soft);">${s.nis}</td>
+      <td>${s.nama}</td>
+      ${inputs}
+      <td class="rata" id="rata-${s.id}">${avg}</td>
+      <td id="pred-${s.id}"><span class="predikat-badge predikat-${p}">${p}</span></td>
+    </tr>`;
+  }).join('');
+
+  return `
+  <div class="card">
+    <div class="card-head">
+      <h2>Input Nilai</h2>
+      <select id="subjectSelect" class="date-select">${subOptions}</select>
+    </div>
+    <table>
+      <thead><tr>
+        <th style="width:90px;">NIS</th><th>Nama</th>
+        ${assessTypes.map(a=>`<th style="text-align:center;">${a.label}<br><span style="font-weight:400;opacity:.7;">(${Math.round(a.weight*100)}%)</span></th>`).join('')}
+        <th>Rata²</th><th>Predikat</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="note">Pengampu: ${sub.guru} · Rata-rata dihitung otomatis dari bobot Formatif 15% + 15%, STS 30%, SAS 40%. Predikat: A ≥90, B ≥80, C ≥70, D &lt;70.</div>
+  </div>`;
+}
+
+/* ============ RENDER: RAPOR ============ */
+function renderRapor(){
+  const studOptions = students.map(s=>`<option value="${s.id}" ${s.id===selectedStudent?'selected':''}>${s.nama}</option>`).join('');
+  const s = students.find(st=>st.id===selectedStudent);
+
+  const subjectRows = subjects.map(sub=>{
+    const avg = rataRata(sub.id, s.id);
+    const p = predikat(avg);
+    return `<tr>
+      <td>${sub.nama}</td>
+      <td class="mono" style="text-align:center;">${avg}</td>
+      <td style="text-align:center;"><span class="predikat-badge predikat-${p}">${p}</span></td>
+      <td class="capaian">Ananda ${capaianText[p]}</td>
+    </tr>`;
+  }).join('');
+
+  // attendance recap across all generated dates
+  let counts = {H:0,S:0,I:0,A:0};
+  attDates.forEach(d=>{
+    const st = attendance[dateKey(d)][s.id];
+    counts[st]++;
+  });
+
+  return `
+  <div class="card-head" style="margin-bottom:14px;">
+    <h2 style="font-family:var(--font-display);font-size:18px;">Pilih Peserta Didik</h2>
+    <select id="studentSelect" class="date-select">${studOptions}</select>
+  </div>
+
+  <div class="rapor-sheet">
+    <div class="rapor-head">
+      <div>
+        <div class="school">SMP — Sistem Informasi Sekolah</div>
+        <div class="school-sub">Laporan Hasil Belajar Peserta Didik</div>
+      </div>
+      <div class="title-right">
+        <div class="eyebrow">Semester Genap</div>
+        <div class="ta">Tahun Ajaran 2025/2026</div>
+      </div>
+    </div>
+
+    <div class="siswa-info">
+      <div><div class="l">Nama Peserta Didik</div><div class="v">${s.nama}</div></div>
+      <div><div class="l">NIS</div><div class="v mono">${s.nis}</div></div>
+      <div><div class="l">Kelas</div><div class="v">7A</div></div>
+    </div>
+
+    <table class="rapor-table">
+      <thead><tr><th>Mata Pelajaran</th><th style="text-align:center;">Nilai Akhir</th><th style="text-align:center;">Predikat</th><th>Deskripsi Capaian</th></tr></thead>
+      <tbody>${subjectRows}</tbody>
+    </table>
+
+    <div class="kehadiran-box">
+      <div class="item"><div class="n" style="color:var(--teal);">${counts.H}</div><div class="l">Hadir</div></div>
+      <div class="item"><div class="n" style="color:var(--gold);">${counts.S}</div><div class="l">Sakit</div></div>
+      <div class="item"><div class="n" style="color:#6C7BA0;">${counts.I}</div><div class="l">Izin</div></div>
+      <div class="item"><div class="n" style="color:var(--rust);">${counts.A}</div><div class="l">Alpa</div></div>
+    </div>
+
+    <div class="catatan-box">
+      <label>Catatan Wali Kelas</label>
+      <textarea class="catatan" id="catatanInput">${catatan[s.id]}</textarea>
+    </div>
+
+    <div class="ttd-row">
+      <div class="ttd">
+        <div class="role">Orang Tua/Wali</div>
+        <div style="height:66px;"></div>
+        <div class="name">( ......................... )</div>
+      </div>
+      <div class="ttd">
+        <div class="role">Wali Kelas</div>
+        <div class="stamp2"><span>SIS<br>PROTOTIPE</span></div>
+        <div class="name">Ibu Ratna Kusuma, S.Pd.</div>
+      </div>
+      <div class="ttd">
+        <div class="role">Kepala Sekolah</div>
+        <div style="height:66px;"></div>
+        <div class="name">( ......................... )</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ============ MAIN RENDER + EVENTS ============ */
+function render(){
+  document.getElementById('pageTitle').textContent = titles[activeTab];
+  const root = document.getElementById('viewRoot');
+  if(activeTab==='jadwal') root.innerHTML = renderJadwal();
+  else if(activeTab==='absensi') root.innerHTML = renderAbsensi();
+  else if(activeTab==='nilai') root.innerHTML = renderNilai();
+  else if(activeTab==='rapor') root.innerHTML = renderRapor();
+
+  bindViewEvents();
+}
+
+function bindViewEvents(){
+  // absensi
+  const dateSelect = document.getElementById('dateSelect');
+  if(dateSelect){
+    dateSelect.addEventListener('change', e=>{
+      selectedDateKey = e.target.value;
+      render();
+    });
+  }
+  document.querySelectorAll('.status-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const sid = parseInt(btn.dataset.sid);
+      const code = btn.dataset.s;
+      attendance[selectedDateKey][sid] = code;
+      render();
+    });
+  });
+
+  // nilai
+  const subjectSelect = document.getElementById('subjectSelect');
+  if(subjectSelect){
+    subjectSelect.addEventListener('change', e=>{
+      selectedSubject = e.target.value;
+      render();
+    });
+  }
+  document.querySelectorAll('.nilai-input').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      const sid = parseInt(inp.dataset.sid);
+      const key = inp.dataset.key;
+      let v = parseInt(inp.value);
+      if(isNaN(v)) v = 0;
+      v = Math.max(0, Math.min(100, v));
+      grades[selectedSubject][sid][key] = v;
+      const avg = rataRata(selectedSubject, sid);
+      const p = predikat(avg);
+      document.getElementById('rata-'+sid).textContent = avg;
+      document.getElementById('pred-'+sid).innerHTML = `<span class="predikat-badge predikat-${p}">${p}</span>`;
+    });
+  });
+
+  // rapor
+  const studentSelect = document.getElementById('studentSelect');
+  if(studentSelect){
+    studentSelect.addEventListener('change', e=>{
+      selectedStudent = parseInt(e.target.value);
+      render();
+    });
+  }
+  const catatanInput = document.getElementById('catatanInput');
+  if(catatanInput){
+    catatanInput.addEventListener('input', e=>{
+      catatan[selectedStudent] = e.target.value;
+    });
+  }
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    activeTab = btn.dataset.tab;
+    render();
+  });
+});
+
+render();
+</script>
+</body>
+</html>
